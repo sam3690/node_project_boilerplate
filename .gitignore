@@ -78,7 +78,7 @@ dist
 
 # Gatsby files
 .cache/
-public
+# Note: client/public folder should be included, so we don't ignore it globally
 
 # Storybook build outputs
 .out
