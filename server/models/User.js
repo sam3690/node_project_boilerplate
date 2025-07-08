@@ -3,31 +3,50 @@ const db = require('../database/connection');
 class User {
   constructor(userData) {
     this.id = userData.id;
+    this.name = userData.name;
     this.username = userData.username;
     this.email = userData.email;
-    this.name = userData.name;
+    this.emailVerifiedAt = userData.email_verified_at;
+    this.designation = userData.designation;
+    this.contact = userData.contact;
+    this.district = userData.district;
+    this.idGroup = userData.idGroup;
+    this.status = userData.status;
+    this.createdBy = userData.createdBy;
     this.createdAt = userData.created_at;
+    this.updateBy = userData.updateBy;
     this.updatedAt = userData.updated_at;
-    this.lastLogin = userData.last_login;
+    this.deleteBy = userData.deleteBy;
+    this.deletedDateTime = userData.deletedDateTime;
+    this.pwdExpiry = userData.pwdExpiry;
+    this.attempt = userData.attempt;
+    this.attemptDateTime = userData.attemptDateTime;
+    this.isNewUser = userData.isNewUser;
+    this.lastPwdChangeBy = userData.lastPwdChangeBy;
+    this.lastPwdDt = userData.lastPwd_dt;
   }
 
   // Create a new user (basic creation without auth logic)
   static async create(userData) {
     try {
-      const { username, email, passwordHash, name } = userData;
+      const { name, username, email, passwordHash, designation, contact, district, idGroup, createdBy } = userData;
 
       const query = `
-        INSERT INTO users_dash (username, email, password, name)
+        INSERT INTO users_dash (name, username, email, password, designation, contact, district, idGroup, status, createdBy, created_at, isNewUser)
         OUTPUT INSERTED.*
-        VALUES (@username, @email, @passwordHash, @name)
+        VALUES (@name, @username, @email, @passwordHash, @designation, @contact, @district, @idGroup, 1, @createdBy, GETDATE(), 1)
       `;
 
       const result = await db.query(query, {
+        name,
         username,
         email,
         passwordHash,
-        firstName,
-        lastName
+        designation: designation || null,
+        contact: contact || null,
+        district: district || null,
+        idGroup: idGroup || 1,
+        createdBy: createdBy || 'system'
       });
 
       if (result.recordset.length > 0) {
@@ -45,7 +64,7 @@ class User {
     try {
       const query = `
         SELECT * FROM users_dash 
-        WHERE id = @id
+        WHERE id = @id AND status = 1
       `;
 
       const result = await db.query(query, { id });
@@ -65,7 +84,7 @@ class User {
     try {
       const query = `
         SELECT * FROM users_dash 
-        WHERE email = @email
+        WHERE email = @email AND status = 1
       `;
 
       const result = await db.query(query, { email });
@@ -85,7 +104,7 @@ class User {
     try {
       const query = `
         SELECT * FROM users_dash 
-        WHERE username = @username
+        WHERE username = @username AND status = 1
       `;
 
       const result = await db.query(query, { username });
@@ -226,13 +245,19 @@ class User {
   toJSON() {
     return {
       id: this.id,
+      name: this.name,
       username: this.username,
       email: this.email,
-      firstName: this.firstName,
-      lastName: this.lastName,
+      emailVerifiedAt: this.emailVerifiedAt,
+      designation: this.designation,
+      contact: this.contact,
+      district: this.district,
+      idGroup: this.idGroup,
+      status: this.status,
+      createdBy: this.createdBy,
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,
-      lastLogin: this.lastLogin
+      isNewUser: this.isNewUser
     };
   }
 }

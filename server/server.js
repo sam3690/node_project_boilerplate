@@ -3,6 +3,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const morgan = require('morgan');
+const session = require('express-session');
 require('dotenv').config();
 
 const db = require('./database/connection');
@@ -16,6 +17,18 @@ const PORT = process.env.PORT || 5000;
 // Security middleware
 app.use(helmet({
   crossOriginEmbedderPolicy: false,
+}));
+
+// Session configuration (Laravel-style)
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'your-secret-key-change-in-production',
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    secure: process.env.NODE_ENV === 'production', // HTTPS in production
+    httpOnly: true,
+    maxAge: 24 * 60 * 60 * 1000 // 24 hours
+  }
 }));
 
 // CORS configuration

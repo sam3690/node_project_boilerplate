@@ -5,15 +5,18 @@ class AuthController {
   // Register a new user
   static async register(req, res) {
     try {
-      const { username, email, password, firstName, lastName } = req.body;
+      const { name, username, email, password, designation, contact, district, idGroup } = req.body;
 
       // Use Auth model for registration
       const result = await Auth.register({
+        name,
         username,
         email,
         password,
-        firstName,
-        lastName
+        designation,
+        contact,
+        district,
+        idGroup
       });
 
       res.status(201).json({
@@ -46,6 +49,10 @@ class AuthController {
 
       // Use Auth model for login
       const result = await Auth.login(email, password);
+
+      // Create session (Laravel-style)
+      req.session.userId = result.user.id;
+      req.session.user = result.user;
 
       res.json({
         success: true,
@@ -80,33 +87,10 @@ class AuthController {
     }
   }
 
-  // Refresh token
-  static async refreshToken(req, res) {
-    try {
-      // Generate new token for current user
-      const token = Auth.generateToken(req.user.id);
-
-      res.json({
-        success: true,
-        message: 'Token refreshed successfully',
-        data: {
-          token
-        }
-      });
-    } catch (error) {
-      console.error('Token refresh error:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Internal server error during token refresh'
-      });
-    }
-  }
-
-  // Logout (client-side token removal, could be enhanced with token blacklisting)
+  // Logout (Laravel-style session destroy)
   static async logout(req, res) {
     try {
-      const token = req.headers.authorization?.split(' ')[1];
-      await Auth.logout(token);
+      await Auth.logout(req);
       
       res.json({
         success: true,

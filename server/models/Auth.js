@@ -1,13 +1,12 @@
 const db = require('../database/connection');
 const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
 const User = require('./User');
 
 class Auth {
   // Register a new user
   static async register(userData) {
     try {
-      const { username, email, password, firstName, lastName } = userData;
+      const { name, username, email, password, designation, contact, district, idGroup } = userData;
       
       // Check if user already exists
       const existingUser = await User.findByEmail(email);
@@ -24,27 +23,21 @@ class Auth {
       const saltRounds = 12;
       const passwordHash = await bcrypt.hash(password, saltRounds);
 
-      const query = `
-        INSERT INTO Users (username, email, password_hash, first_name, last_name)
-        OUTPUT INSERTED.*
-        VALUES (@username, @email, @passwordHash, @firstName, @lastName)
-      `;
-
-      const result = await db.query(query, {
+      const user = await User.create({
+        name,
         username,
         email,
         passwordHash,
-        firstName,
-        lastName
+        designation,
+        contact,
+        district,
+        idGroup,
+        createdBy: 'system'
       });
 
-      if (result.recordset.length > 0) {
-        const user = new User(result.recordset[0]);
-        const token = this.generateToken(user.id);
-        
+      if (user) {
         return {
-          user: user.toJSON(),
-          token
+          user: user.toJSON()
         };
       }
       
@@ -55,12 +48,12 @@ class Auth {
     }
   }
 
-  // Authenticate user login
+  // Authenticate user login (Laravel-style)
   static async login(email, password) {
     try {
       const query = `
-        SELECT * FROM Users 
-        WHERE email = @email
+        SELECT * FROM users_dash 
+        WHERE email = @email AND status = 1
       `;
 
       const result = await db.query(query, { email });
@@ -70,21 +63,27 @@ class Auth {
       }
 
       const userData = result.recordset[0];
-      const isValidPassword = await bcrypt.compare(password, userData.password_hash);
+      
+      // Check password attempts and lockout
+      if (userData.attempt >= 5) {
+        throw new Error('Account locked due to too many failed attempts');
+      }
+
+      const isValidPassword = await bcrypt.compare(password, userData.password);
 
       if (!isValidPassword) {
+        // Increment failed attempts
+        await this.incrementFailedAttempts(userData.id);
         throw new Error('Invalid credentials');
       }
 
-      // Update last login
-      await this.updateLastLogin(userData.id);
+      // Reset failed attempts on successful login
+      await this.resetFailedAttempts(userData.id);
 
       const user = new User(userData);
-      const token = this.generateToken(user.id);
 
       return {
-        user: user.toJSON(),
-        token
+        user: user.toJSON()
       };
     } catch (error) {
       console.error('Error authenticating user:', error);
@@ -92,53 +91,40 @@ class Auth {
     }
   }
 
-  // Generate JWT token
-  static generateToken(userId) {
-    return jwt.sign(
-      { userId },
-      process.env.JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
-    );
-  }
-
-  // Verify JWT token
-  static verifyToken(token) {
-    try {
-      return jwt.verify(token, process.env.JWT_SECRET);
-    } catch (error) {
-      throw new Error('Invalid or expired token');
-    }
-  }
-
-  // Get authenticated user from token
-  static async user(token) {
-    try {
-      const decoded = this.verifyToken(token);
-      const user = await User.findById(decoded.userId);
-      
-      if (!user) {
-        throw new Error('User not found');
-      }
-      
-      return user;
-    } catch (error) {
-      console.error('Error getting authenticated user:', error);
-      throw error;
-    }
-  }
-
-  // Update user's last login timestamp
-  static async updateLastLogin(userId) {
+  // Increment failed login attempts
+  static async incrementFailedAttempts(userId) {
     try {
       const query = `
-        UPDATE Users 
-        SET last_login = GETDATE() 
+        UPDATE users_dash 
+        SET attempt = ISNULL(attempt, 0) + 1, 
+            attemptDateTime = GETDATE(),
+            updateBy = 'system',
+            updated_at = GETDATE()
         WHERE id = @userId
       `;
 
       await db.query(query, { userId });
     } catch (error) {
-      console.error('Error updating last login:', error);
+      console.error('Error incrementing failed attempts:', error);
+      throw error;
+    }
+  }
+
+  // Reset failed login attempts
+  static async resetFailedAttempts(userId) {
+    try {
+      const query = `
+        UPDATE users_dash 
+        SET attempt = 0, 
+            attemptDateTime = NULL,
+            updateBy = 'system',
+            updated_at = GETDATE()
+        WHERE id = @userId
+      `;
+
+      await db.query(query, { userId });
+    } catch (error) {
+      console.error('Error resetting failed attempts:', error);
       throw error;
     }
   }
@@ -154,8 +140,8 @@ class Auth {
 
       // Verify current password
       const query = `
-        SELECT password_hash FROM Users 
-        WHERE id = @id
+        SELECT password FROM users_dash 
+        WHERE id = @id AND status = 1
       `;
 
       const result = await db.query(query, { id: userId });
@@ -164,7 +150,7 @@ class Auth {
         throw new Error('User not found');
       }
 
-      const isValidPassword = await bcrypt.compare(currentPassword, result.recordset[0].password_hash);
+      const isValidPassword = await bcrypt.compare(currentPassword, result.recordset[0].password);
 
       if (!isValidPassword) {
         throw new Error('Current password is incorrect');
@@ -176,15 +162,20 @@ class Auth {
 
       // Update password
       const updateQuery = `
-        UPDATE Users 
-        SET password_hash = @newPasswordHash,
-            updated_at = GETDATE()
+        UPDATE users_dash 
+        SET password = @newPasswordHash,
+            lastPwdChangeBy = @userId,
+            lastPwd_dt = GETDATE(),
+            updateBy = @userId,
+            updated_at = GETDATE(),
+            isNewUser = 0
         WHERE id = @id
       `;
 
       await db.query(updateQuery, {
         newPasswordHash,
-        id: userId
+        id: userId,
+        userId: userId.toString()
       });
 
       return true;
@@ -208,9 +199,14 @@ class Auth {
 
       // Update password
       const updateQuery = `
-        UPDATE Users 
-        SET password_hash = @newPasswordHash,
-            updated_at = GETDATE()
+        UPDATE users_dash 
+        SET password = @newPasswordHash,
+            lastPwdChangeBy = 'admin',
+            lastPwd_dt = GETDATE(),
+            updateBy = 'system',
+            updated_at = GETDATE(),
+            attempt = 0,
+            attemptDateTime = NULL
         WHERE id = @id
       `;
 
@@ -226,11 +222,33 @@ class Auth {
     }
   }
 
-  // Logout (for token blacklisting if needed)
-  static async logout(token) {
-    // For JWT, typically just remove token from client
-    // Could implement token blacklisting here if needed
-    return true;
+  // Check if user session is valid (for session-based auth)
+  static async check(req) {
+    try {
+      if (req.session && req.session.userId) {
+        const user = await User.findById(req.session.userId);
+        if (user) {
+          return user;
+        }
+      }
+      return null;
+    } catch (error) {
+      console.error('Error checking auth session:', error);
+      return null;
+    }
+  }
+
+  // Logout (destroy session)
+  static async logout(req) {
+    try {
+      if (req.session) {
+        req.session.destroy();
+      }
+      return true;
+    } catch (error) {
+      console.error('Error during logout:', error);
+      throw error;
+    }
   }
 }
 

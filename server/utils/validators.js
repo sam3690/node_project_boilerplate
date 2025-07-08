@@ -2,6 +2,11 @@ const { body } = require('express-validator');
 const User = require('../models/User');
 
 const registerValidation = [
+  body('name')
+    .isLength({ min: 2, max: 50 })
+    .withMessage('Name must be between 2 and 50 characters')
+    .trim(),
+
   body('username')
     .isLength({ min: 3, max: 50 })
     .withMessage('Username must be between 3 and 50 characters')
@@ -17,6 +22,8 @@ const registerValidation = [
   body('email')
     .isEmail()
     .withMessage('Please provide a valid email')
+    .isLength({ max: 150 })
+    .withMessage('Email must not exceed 150 characters')
     .normalizeEmail()
     .custom(async (value) => {
       const exists = await User.emailExists(value);
@@ -31,17 +38,28 @@ const registerValidation = [
     .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/)
     .withMessage('Password must contain at least one lowercase letter, one uppercase letter, and one number'),
 
-  body('firstName')
+  body('designation')
     .optional()
     .isLength({ min: 1, max: 50 })
-    .withMessage('First name must be between 1 and 50 characters')
+    .withMessage('Designation must be between 1 and 50 characters')
     .trim(),
 
-  body('lastName')
+  body('contact')
     .optional()
-    .isLength({ min: 1, max: 50 })
-    .withMessage('Last name must be between 1 and 50 characters')
-    .trim()
+    .isLength({ min: 1, max: 20 })
+    .withMessage('Contact must be between 1 and 20 characters')
+    .trim(),
+
+  body('district')
+    .optional()
+    .isLength({ min: 1, max: 20 })
+    .withMessage('District must be between 1 and 20 characters')
+    .trim(),
+
+  body('idGroup')
+    .optional()
+    .isInt({ min: 1 })
+    .withMessage('Group ID must be a positive integer')
 ];
 
 const loginValidation = [

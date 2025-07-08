@@ -2,34 +2,18 @@ const Auth = require('../models/Auth');
 
 const auth = async (req, res, next) => {
   try {
-    const token = req.header('Authorization')?.replace('Bearer ', '');
+    // Check if user is authenticated via session (Laravel-style)
+    const user = await Auth.check(req);
 
-    if (!token) {
+    if (!user) {
       return res.status(401).json({
         success: false,
-        message: 'Access denied. No token provided.'
+        message: 'Unauthenticated. Please login.'
       });
     }
 
-    try {
-      const user = await Auth.user(token);
-      req.user = user;
-      next();
-    } catch (tokenError) {
-      if (tokenError.message.includes('expired')) {
-        return res.status(401).json({
-          success: false,
-          message: 'Token expired. Please login again.'
-        });
-      } else if (tokenError.message.includes('Invalid')) {
-        return res.status(401).json({
-          success: false,
-          message: 'Invalid token.'
-        });
-      } else {
-        throw tokenError;
-      }
-    }
+    req.user = user;
+    next();
   } catch (error) {
     console.error('Auth middleware error:', error);
     res.status(500).json({
