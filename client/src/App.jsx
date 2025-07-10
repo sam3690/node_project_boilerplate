@@ -1,27 +1,26 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
+import { ToastContainer } from 'react-toastify'
+import 'react-toastify/dist/ReactToastify.css'
 
-import { AuthProvider } from './context/AuthContext';
-import Header from './components/Header';
-import ProtectedRoute from './components/ProtectedRoute';
+import { AuthProvider } from './context/AuthContext'
+import Header from './components/Header.jsx'
+import ProtectedRoute from './components/ProtectedRoute.jsx'
 
-import Home from './pages/Home';
-import Login from './pages/Login';
-import Register from './pages/Register';
-import Dashboard from './pages/Dashboard';
-import Profile from './pages/Profile';
+import Home from './pages/Home.jsx'
+import Login from './pages/Login.jsx'
+import Register from './pages/Register.jsx'
+import Dashboard from './pages/Dashboard.jsx'
+import Profile from './pages/Profile.jsx'
 
-import './App.css';
+import './App.css'
 
 function App() {
   return (
     <AuthProvider>
       <Router>
-        <div className="App">
+        <div className="min-h-screen flex flex-col bg-gray-50">
           <Header />
-          <main className="main-content">
+          <main className="flex-1">
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/login" element={<Login />} />
@@ -61,7 +60,7 @@ function App() {
         </div>
       </Router>
     </AuthProvider>
-  );
+  )
 }
 
-export default App;
+export default App
