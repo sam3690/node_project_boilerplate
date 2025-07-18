@@ -4,6 +4,7 @@ import 'react-toastify/dist/ReactToastify.css'
 
 import { AuthProvider } from './context/AuthContext'
 import Header from './components/Header.jsx'
+import Layout from './components/Layout.jsx'
 import ProtectedRoute from './components/ProtectedRoute.jsx'
 
 import Home from './pages/Home.jsx'
@@ -11,6 +12,16 @@ import Login from './pages/Login.jsx'
 import Register from './pages/Register.jsx'
 import Dashboard from './pages/Dashboard.jsx'
 import Profile from './pages/Profile.jsx'
+
+// Data Pages
+import DashboardUsers from './pages/DashboardUsers.jsx'
+import Groups from './pages/Groups.jsx'
+import Pages from './pages/Pages.jsx'
+
+// Admin Pages
+import ManageUsers from './pages/admin/ManageUsers.jsx'
+import ManageGroups from './pages/admin/ManageGroups.jsx'
+import ManagePages from './pages/admin/ManagePages.jsx'
 
 import './App.css'
 
@@ -25,11 +36,15 @@ function App() {
               <Route path="/" element={<Home />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
+              
+              {/* Protected Routes with Layout */}
               <Route
                 path="/dashboard"
                 element={
                   <ProtectedRoute>
-                    <Dashboard />
+                    <Layout>
+                      <Dashboard />
+                    </Layout>
                   </ProtectedRoute>
                 }
               />
@@ -37,10 +52,77 @@ function App() {
                 path="/profile"
                 element={
                   <ProtectedRoute>
-                    <Profile />
+                    <Layout>
+                      <Profile />
+                    </Layout>
                   </ProtectedRoute>
                 }
               />
+              
+              {/* Data Management Routes */}
+              <Route
+                path="/dashboard/users"
+                element={
+                  <ProtectedRoute>
+                    <Layout>
+                      <DashboardUsers />
+                    </Layout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/groups"
+                element={
+                  <ProtectedRoute>
+                    <Layout>
+                      <Groups />
+                    </Layout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/pages"
+                element={
+                  <ProtectedRoute>
+                    <Layout>
+                      <Pages />
+                    </Layout>
+                  </ProtectedRoute>
+                }
+              />
+              
+              {/* Admin Routes */}
+              <Route
+                path="/admin/users"
+                element={
+                  <ProtectedRoute>
+                    <Layout>
+                      <ManageUsers />
+                    </Layout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/groups"
+                element={
+                  <ProtectedRoute>
+                    <Layout>
+                      <ManageGroups />
+                    </Layout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/pages"
+                element={
+                  <ProtectedRoute>
+                    <Layout>
+                      <ManagePages />
+                    </Layout>
+                  </ProtectedRoute>
+                }
+              />
+              
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </main>

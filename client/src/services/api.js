@@ -8,21 +8,8 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  withCredentials: true, // Important: Send cookies with requests for session-based auth
 });
-
-// Request interceptor to add auth token
-api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
 
 // Response interceptor to handle errors
 api.interceptors.response.use(
@@ -30,12 +17,16 @@ api.interceptors.response.use(
     return response;
   },
   (error) => {
+    console.error('API Error:', error);
+    
+    // Don't redirect on auth errors, let the component handle it
     if (error.response?.status === 401) {
-      // Token expired or invalid
-      localStorage.removeItem('token');
+      // Session expired or invalid - just remove user data, don't redirect
       localStorage.removeItem('user');
-      window.location.href = '/login';
+      // Don't use window.location.href as it causes page reload
     }
+    
+    // Return the error for the component to handle
     return Promise.reject(error);
   }
 );

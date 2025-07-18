@@ -24,30 +24,16 @@ const Header = () => {
 
           <nav className="flex items-center space-x-6">
             {isAuthenticated ? (
-              <div className="flex items-center space-x-6">
-                <Link 
-                  to="/dashboard" 
-                  className="text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200"
+              <div className="flex items-center space-x-4">
+                <span className="text-sm text-gray-600">
+                  Hello, {user?.name || user?.username}!
+                </span>
+                <button 
+                  onClick={handleLogout} 
+                  className="bg-red-600 text-white px-3 py-1.5 rounded-md text-sm font-medium hover:bg-red-700 transition-colors duration-200"
                 >
-                  Dashboard
-                </Link>
-                <Link 
-                  to="/profile" 
-                  className="text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200"
-                >
-                  Profile
-                </Link>
-                <div className="flex items-center space-x-4 pl-4 border-l border-gray-200">
-                  <span className="text-sm text-gray-600">
-                    Hello, {user?.firstName || user?.username}!
-                  </span>
-                  <button 
-                    onClick={handleLogout} 
-                    className="bg-red-600 text-white px-3 py-1.5 rounded-md text-sm font-medium hover:bg-red-700 transition-colors duration-200"
-                  >
-                    Logout
-                  </button>
-                </div>
+                  Logout
+                </button>
               </div>
             ) : (
               <div className="flex items-center space-x-4">

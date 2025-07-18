@@ -18,7 +18,6 @@ const authReducer = (state, action) => {
         loading: false,
         isAuthenticated: true,
         user: action.payload.user,
-        token: action.payload.token,
         error: null,
       };
     case 'LOGIN_FAILURE':
@@ -27,7 +26,6 @@ const authReducer = (state, action) => {
         loading: false,
         isAuthenticated: false,
         user: null,
-        token: null,
         error: action.payload,
       };
     case 'LOGOUT':
@@ -35,7 +33,6 @@ const authReducer = (state, action) => {
         ...state,
         isAuthenticated: false,
         user: null,
-        token: null,
         error: null,
       };
     case 'UPDATE_USER':
@@ -57,7 +54,6 @@ const authReducer = (state, action) => {
 const initialState = {
   isAuthenticated: authService.isAuthenticated(),
   user: authService.getCurrentUser(),
-  token: authService.getToken(),
   loading: false,
   error: null,
 };
@@ -68,33 +64,60 @@ export const AuthProvider = ({ children }) => {
 
   // Check authentication status on mount
   useEffect(() => {
-    const token = authService.getToken();
-    const user = authService.getCurrentUser();
+    const checkAuthStatus = async () => {
+      const user = authService.getCurrentUser();
+      if (user) {
+        // Verify session is still valid
+        const validUser = await authService.checkAuth();
+        if (validUser) {
+          dispatch({
+            type: 'LOGIN_SUCCESS',
+            payload: { user: validUser },
+          });
+        } else {
+          dispatch({ type: 'LOGOUT' });
+        }
+      }
+    };
 
-    if (token && user) {
-      dispatch({
-        type: 'LOGIN_SUCCESS',
-        payload: { user, token },
-      });
-    }
+    checkAuthStatus();
   }, []);
 
   // Login function
   const login = async (credentials) => {
     try {
       dispatch({ type: 'LOGIN_START' });
+      
+      // Ensure we don't have any navigation side effects
       const response = await authService.login(credentials);
       
-      dispatch({
-        type: 'LOGIN_SUCCESS',
-        payload: {
-          user: response.data.user,
-          token: response.data.token,
-        },
-      });
-
-      return response;
+      if (response && response.success && response.data && response.data.user) {
+        dispatch({
+          type: 'LOGIN_SUCCESS',
+          payload: {
+            user: response.data.user,
+          },
+        });
+        
+        return response;
+      } else {
+        const errorMessage = response?.message || 'Invalid credentials';
+        dispatch({
+          type: 'LOGIN_FAILURE',
+          payload: errorMessage,
+        });
+        throw new Error(errorMessage);
+      }
     } catch (error) {
+      console.error('AuthContext login error:', error);
+      const errorMessage = error.message || 'Login failed. Please check your credentials.';
+      dispatch({
+        type: 'LOGIN_FAILURE',
+        payload: errorMessage,
+      });
+      
+      // Ensure error is properly thrown to be caught by form
+      throw new Error(errorMessage);
       dispatch({
         type: 'LOGIN_FAILURE',
         payload: error.message || 'Login failed',
@@ -113,7 +136,6 @@ export const AuthProvider = ({ children }) => {
         type: 'LOGIN_SUCCESS',
         payload: {
           user: response.data.user,
-          token: response.data.token,
         },
       });
 

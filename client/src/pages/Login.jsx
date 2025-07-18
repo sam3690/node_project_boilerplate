@@ -13,6 +13,7 @@ const schema = yup.object({
 
 const Login = () => {
   const [isLoading, setIsLoading] = useState(false)
+  const [loginError, setLoginError] = useState('')
   const { login } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
@@ -27,14 +28,20 @@ const Login = () => {
     resolver: yupResolver(schema),
   })
 
-  const onSubmit = async (data) => {
+  const onSubmit = async (data, event) => {
+    event?.preventDefault() // Prevent default form submission
     setIsLoading(true)
+    setLoginError('') // Clear previous errors
+    
     try {
       await login(data)
       toast.success('Login successful!')
       navigate(from, { replace: true })
     } catch (error) {
-      toast.error(error.message || 'Login failed')
+      console.error('Login error caught in form:', error)
+      const errorMessage = error.message || 'Invalid email or password. Please try again.'
+      setLoginError(errorMessage)
+      toast.error(errorMessage)
     } finally {
       setIsLoading(false)
     }
@@ -49,7 +56,17 @@ const Login = () => {
         </div>
 
         <div className="bg-white py-8 px-6 shadow-sm rounded-lg border border-gray-200">
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          {loginError && (
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
+              <p className="text-red-700 text-sm">{loginError}</p>
+            </div>
+          )}
+          
+          <form 
+            onSubmit={handleSubmit(onSubmit)} 
+            className="space-y-6"
+            noValidate
+          >
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
                 Email
