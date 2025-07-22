@@ -4,80 +4,40 @@ A modern, production-ready admin dashboard system with comprehensive role-based 
 
 ## ✨ Features
 
-### 🔑 Authentication & Authorization
+- **Role-based authentication** with hierarchical permissions
+- **User management** with CRUD operations and group assignment
+- **Group management** with permission matrix configuration
+- **Page management** with dynamic navigation structure
 - **Session-based authentication** (Laravel-style)
-- **Role-based access control** with hierarchical permissions
 - **Protected routes** on both frontend and backend
-- **Password hashing** with bcrypt (12 rounds)
+- **Password hashing** with bcrypt
 - **Soft delete** for data integrity
-
-### 👥 User Management
-- Complete CRUD operations for users
-- Group/role assignment
-- User status management
-- Audit trails with created/updated tracking
-
-### 🏢 Group Management
-- Create and manage user groups/roles
-- Permission matrix configuration
-- Built-in superadmin protection
-- User count tracking per group
-
-### 📄 Page Management
-- Dynamic navigation structure
-- Parent/child page relationships
-- Menu ordering with sort_no
-- Icon and styling customization
-- Visibility controls
-
-### 🛡️ Security Features
-- Environment variable configuration
-- CORS protection
-- Input validation and sanitization
-- Error handling middleware
-- SQL injection prevention
+- **Admin dashboard** with data visualization
 
 ## 🏗️ Technology Stack
 
-### Backend
-- **Node.js** + **Express.js** - Server framework
-- **MSSQL** - Database with parameterized queries
-- **bcryptjs** - Password hashing
-- **express-session** - Session management
-- **cors** - Cross-origin resource sharing
-
-### Frontend
-- **React 18** - UI framework
-- **Vite** - Build tool and dev server
-- **Tailwind CSS** - Utility-first styling
-- **React Router** - Client-side routing
+**Backend:** Node.js, Express.js, MSSQL, bcryptjs, express-session  
+**Frontend:** React 18, Vite, Tailwind CSS, React Router  
+**Security:** CORS protection, input validation, SQL injection prevention
 
 ## 🚀 Quick Start
 
 ### Prerequisites
-- Node.js (v16+ recommended)
+- Node.js (v16+)
 - MSSQL Server access
 - npm or yarn
 
-### 1. Clone & Install
+### Installation
 ```bash
+# Clone and install dependencies
 git clone <repository-url>
 cd project_boilerplate
-
-# Install dependencies
 npm install
 cd server && npm install
 cd ../client && npm install
 ```
 
-### 2. Database Setup
-The system creates these tables automatically:
-- `users_dash` - User accounts
-- `Groups` - User roles/groups  
-- `Pages` - Navigation structure
-- `PageGroup` - Permission matrix
-
-### 3. Environment Configuration
+### Environment Setup
 Create `server/.env`:
 ```env
 # Database Configuration
@@ -95,29 +55,26 @@ PORT=5000
 NODE_ENV=development
 ```
 
-### 4. Initialize Database
+### Database Initialization
 ```bash
 cd server
 node setup-db.js    # Creates tables
 node seed.js        # Seeds initial data
 ```
 
-### 5. Start Development Servers
+### Start Development
 ```bash
 # Terminal 1 - Backend
-cd server
-npm start
+cd server && npm start
 
 # Terminal 2 - Frontend  
-cd client
-npm run dev
+cd client && npm run dev
 ```
 
 Visit `http://localhost:5173` to access the application.
 
-## 🔐 Default Login Credentials
+## 🔐 Default Login
 
-### Super Admin Account
 - **Email:** `test@example.com`
 - **Username:** `admin`
 - **Password:** `test123`
@@ -139,47 +96,9 @@ project_boilerplate/
 │   ├── models/           # Database models
 │   ├── middleware/       # Auth, validation, errors
 │   ├── routes/           # Express routes
-│   ├── database/         # DB connection & schema
+│   ├── database/         # DB connection & setup
 │   └── package.json
 └── README.md
-```
-
-## 🗄️ Database Schema
-
-### Users Table (`users_dash`)
-```sql
-- id (INT, PRIMARY KEY, IDENTITY)
-- name (NVARCHAR(100))
-- username (NVARCHAR(50), UNIQUE)
-- email (NVARCHAR(100), UNIQUE)
-- password (NVARCHAR(255))
-- designation (NVARCHAR(50))
-- idGroup (INT, FK to Groups)
-- status (INT, 1=active, 0=inactive)
-- created_at (DATETIME2)
-- updated_at (DATETIME2)
-- deletedDateTime (DATETIME2, NULL)
-```
-
-### Groups Table
-```sql
-- idGroup (INT, PRIMARY KEY, IDENTITY)
-- groupName (NVARCHAR(100), UNIQUE)
-- isActive (INT, 1=active, 0=inactive)
-- createdBy (NVARCHAR(50))
-- createdDateTime (DATETIME2)
-```
-
-### Pages Table
-```sql
-- idPage (INT, PRIMARY KEY, IDENTITY)
-- pageName (NVARCHAR(100))
-- pageUrl (NVARCHAR(255), UNIQUE)
-- isParent (INT, 1=parent, 0=child)
-- idParent (INT, FK to Pages)
-- sort_no (INT)
-- menuIcon (NVARCHAR(50))
-- isActive (INT)
 ```
 
 ## 🔧 API Endpoints
@@ -189,56 +108,26 @@ project_boilerplate/
 - `POST /auth/logout` - User logout
 - `GET /auth/check` - Check session status
 
-### Admin - Users
+### Admin Panel
 - `GET /admin/users` - List all users
+- `GET /admin/groups` - List all groups
+- `GET /admin/pages` - List all pages
 - `POST /admin/users` - Create new user
 - `PUT /admin/users/:id` - Update user
 - `DELETE /admin/users/:id` - Soft delete user
 
-### Admin - Groups
-- `GET /admin/groups` - List all groups
-- `POST /admin/groups` - Create new group
-- `PUT /admin/groups/:id` - Update group
-- `DELETE /admin/groups/:id` - Delete group
-
-### Admin - Pages
-- `GET /admin/pages` - List all pages
-- `POST /admin/pages` - Create new page
-- `PUT /admin/pages/:id` - Update page
-- `DELETE /admin/pages/:id` - Delete page
-
 ### Permissions
 - `GET /permissions/pages` - Get user's accessible pages
 
-## 🛠️ Development
-
-### Adding New Features
-1. **Backend**: Add routes in `/routes`, controllers in `/controllers`, models in `/models`
-2. **Frontend**: Add components in `/components`, pages in `/pages`
-3. **Database**: Update schema in `/database/schema.sql`
-
-### Environment Variables
-- `NODE_ENV` - Environment (development/production)
-- `PORT` - Server port (default: 5000)
-- `SESSION_SECRET` - Session encryption key
-- `DB_*` - Database connection details
-
 ## 🚀 Production Deployment
-
-### Prerequisites
-- Node.js server
-- MSSQL Server
-- Reverse proxy (nginx recommended)
 
 ### Build Steps
 ```bash
 # Build frontend
-cd client
-npm run build
+cd client && npm run build
 
 # Start production server
-cd ../server
-NODE_ENV=production npm start
+cd ../server && NODE_ENV=production npm start
 ```
 
 ### Security Checklist
@@ -247,11 +136,10 @@ NODE_ENV=production npm start
 - [ ] Configure CORS properly
 - [ ] Set up database backups
 - [ ] Monitor error logs
-- [ ] Enable rate limiting
 
 ## 📝 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+MIT License
 
 ## 🤝 Contributing
 
@@ -261,129 +149,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 4. Push to the branch
 5. Open a Pull Request
 
-## 📞 Support
-
-For support, please create an issue in the repository or contact the development team.
-
 ---
 
 **Built with ❤️ using Node.js, React, and MSSQL**
-- Node.js (v14 or higher)
-- Access to an existing MSSQL Server with a Users table
-- npm or yarn
-
-### Installation
-
-1. Clone the repository
-2. Install dependencies for all packages:
-   ```bash
-   npm run install:all
-   ```
-
-3. Configure environment variables:
-   - Copy `.env.example` to `.env` in the server directory
-   - Update the database connection details and JWT secret
-
-4. Configure your database connection:
-   - Ensure your MSSQL database has a Users table with the required columns
-   - Update the connection settings in `server/.env`
-
-5. Start the development servers:
-   ```bash
-   npm run dev
-   ```
-
-This will start both the backend server (port 5000) and React frontend (port 3000).
-
-## Project Structure
-
-```
-project_boilerplate/
-├── server/                 # Backend (Node.js + Express)
-│   ├── controllers/        # Route controllers
-│   ├── models/            # Database models
-│   ├── middleware/        # Custom middleware
-│   ├── routes/            # API routes
-│   ├── database/          # Database configuration
-│   ├── utils/             # Utility functions
-│   └── server.js          # Main server file
-├── client/                # Frontend (React)
-│   ├── src/
-│   │   ├── components/    # React components
-│   │   ├── pages/         # Page components
-│   │   ├── context/       # React context for state management
-│   │   ├── services/      # API service functions
-│   │   └── utils/         # Utility functions
-│   └── public/
-└── README.md
-```
-
-## Database Requirements
-
-This boilerplate expects an existing MSSQL database with a Users table containing the following columns:
-
-```sql
-Users Table:
-- id (INT, IDENTITY, PRIMARY KEY)
-- username (NVARCHAR(50), UNIQUE)
-- email (NVARCHAR(100), UNIQUE)  
-- password_hash (NVARCHAR(255))
-- first_name (NVARCHAR(50))
-- last_name (NVARCHAR(50))
-- created_at (DATETIME2)
-- updated_at (DATETIME2)
-- last_login (DATETIME2, NULL)
-```
-
-**Note**: The application will connect to your existing database and tables. No schema creation is performed by this boilerplate.
-
-## API Endpoints
-
-### Authentication
-- `POST /api/auth/register` - User registration
-- `POST /api/auth/login` - User login
-- `GET /api/auth/me` - Get current user (protected)
-
-### Users
-- `GET /api/users/profile` - Get user profile (protected)
-- `PUT /api/users/profile` - Update user profile (protected)
-
-## Environment Variables
-
-### Server (.env)
-```
-# Database
-DB_SERVER=localhost
-DB_DATABASE=your_database_name
-DB_USERNAME=your_username
-DB_PASSWORD=your_password
-DB_PORT=1433
-
-# JWT
-JWT_SECRET=your_super_secret_jwt_key
-JWT_EXPIRES_IN=7d
-
-# Server
-PORT=5000
-NODE_ENV=development
-
-# CORS
-CLIENT_URL=http://localhost:3000
-```
-
-## Security Features
-
-- **Password Hashing**: Passwords are hashed using bcrypt
-- **JWT Authentication**: Secure token-based authentication
-- **Environment Variables**: Sensitive data stored in environment variables
-- **CORS Protection**: Configured to allow only trusted origins
-- **Input Validation**: Request validation using express-validator
-- **Rate Limiting**: API rate limiting to prevent abuse
-- **SQL Injection Prevention**: Parameterized queries
-
-## License
-
-MIT License
-#   n o d e _ p r o j e c t _ b o i l e r p l a t e 
- 
- 
