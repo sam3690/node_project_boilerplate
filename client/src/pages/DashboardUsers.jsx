@@ -12,8 +12,11 @@ const DashboardUsers = () => {
 
   const fetchUsers = async () => {
     try {
+        // console.log('here');
+        
       setLoading(true);
       const response = await api.get('/admin/users');
+        // console.log(response.data);
       if (response.data.success) {
         setUsers(response.data.data);
       } else {

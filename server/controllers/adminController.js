@@ -1,7 +1,7 @@
 const User = require('../models/User');
 const Group = require('../models/Group');
 const Page = require('../models/Page');
-const { db } = require('../database/connection');
+const db = require('../database/connection');
 const bcrypt = require('bcryptjs');
 
 class AdminController {
@@ -22,18 +22,17 @@ class AdminController {
 
   // Users Management
   static async getAllUsers(req, res) {
+    
     try {
       const query = `
         SELECT u.*, g.groupName 
         FROM users_dash u
         LEFT JOIN [group] g ON u.idGroup = g.idGroup
         WHERE u.deletedDateTime IS NULL
-        ORDER BY u.created_at DESC
+        ORDER BY u.created_at asc
       `;
-      
       const result = await db.query(query);
-      console.table('Get all users result:', result.recordsets);
-      
+            
       res.json({
         success: true,
         data: result.recordset

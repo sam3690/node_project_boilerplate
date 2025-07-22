@@ -15,6 +15,9 @@ const Groups = () => {
       setLoading(true);
       const response = await api.get('/admin/groups');
       if (response.data.success) {
+        // console.log('Fetched groups:', response.data.data);
+        // return;
+        
         setGroups(response.data.data);
       } else {
         setError('Failed to fetch groups');

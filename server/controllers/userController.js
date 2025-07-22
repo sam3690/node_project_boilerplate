@@ -131,10 +131,10 @@ class UserController {
     try {
       // This is a basic implementation - you should add proper admin role checking
       const query = `
-        SELECT id, username, email, first_name, last_name, is_active, created_at, updated_at, last_login
-        FROM Users 
-        WHERE is_active = 1
-        ORDER BY created_at DESC
+        SELECT id, username, email,  created_at, updated_at
+        FROM users_dash 
+        WHERE deleteBy IS NULL or deleteby = ''
+        ORDER BY created_at asc
       `;
 
       const result = await db.query(query);

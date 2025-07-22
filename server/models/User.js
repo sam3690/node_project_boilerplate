@@ -204,7 +204,7 @@ class User {
     try {
       const query = `
         SELECT * FROM users_dash 
-        ORDER BY created_at DESC
+        ORDER BY created_at asc
         OFFSET @offset ROWS
         FETCH NEXT @limit ROWS ONLY
       `;

@@ -1,4 +1,4 @@
-const { db } = require('../database/connection');
+const db = require('../database/connection');
 
 class Page {
   constructor(data) {
@@ -25,6 +25,9 @@ class Page {
 
   // Get all active pages
   static async findAll() {
+
+    // alert('1'); return;
+    
     try {
       const query = `
         SELECT * FROM Pages 
@@ -32,7 +35,10 @@ class Page {
         ORDER BY sort_no, idPages
       `;
       
+
       const result = await db.query(query);
+      // console.table(result.recordset);
+      // return
       return result.recordset.map(row => new Page(row));
     } catch (error) {
       console.error('Error fetching all pages:', error);

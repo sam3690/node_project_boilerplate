@@ -12,15 +12,7 @@ const Sidebar = () => {
   useEffect(() => {
     const fetchMenuItems = async () => {
       try {
-        const response = await api.get('/permissions/user/menu');
-        if (response.data.success) {
-          // Sort menu items by sort_no
-          const sortedItems = response.data.data.sort((a, b) => a.sort_no - b.sort_no);
-          setMenuItems(sortedItems);
-        }
-      } catch (error) {
-        console.error('Error fetching menu items:', error);
-        // Fallback to basic menu items if permission system fails
+        // For now, use fallback menu items since the permission system might not be fully set up
         setMenuItems([
           { idPages: 1, pageName: 'Dashboard', pageUrl: '/dashboard', menuIcon: 'fas fa-tachometer-alt', sort_no: 1 },
           { idPages: 2, pageName: 'Dashboard Users', pageUrl: '/dashboard/users', menuIcon: 'fas fa-users', sort_no: 2 },
@@ -28,6 +20,19 @@ const Sidebar = () => {
           { idPages: 4, pageName: 'Pages', pageUrl: '/pages', menuIcon: 'fas fa-file-alt', sort_no: 4 },
           { idPages: 5, pageName: 'Profile', pageUrl: '/profile', menuIcon: 'fas fa-user', sort_no: 5 }
         ]);
+        
+        /* 
+        // Uncomment this when the permission system is fully configured
+        const response = await api.get('/permissions/user/menu');
+        if (response.data.success) {
+          // Sort menu items by sort_no
+          const sortedItems = response.data.data.sort((a, b) => a.sort_no - b.sort_no);
+          setMenuItems(sortedItems);
+        }
+        */
+      } catch (error) {
+        console.error('Error fetching menu items:', error);
+        // Keep fallback menu items on error
       } finally {
         setLoading(false);
       }

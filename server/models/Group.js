@@ -1,4 +1,4 @@
-const { db } = require('../database/connection');
+const db = require('../database/connection');
 
 class Group {
   constructor(data) {
@@ -66,8 +66,8 @@ class Group {
   static async findAllWithUserCount() {
     try {
       const query = `
-        SELECT g.*, COUNT(u.id) as userCount
-        FROM Groups g
+      SELECT g.*, COUNT(u.id) as userCount
+        FROM [group] g
         LEFT JOIN users_dash u ON g.idGroup = u.idGroup AND u.deletedDateTime IS NULL
         WHERE g.deletedDateTime IS NULL
         GROUP BY g.idGroup, g.groupName, g.createdBy, g.createdDateTime, 
@@ -76,6 +76,8 @@ class Group {
       `;
       
       const result = await db.query(query);
+      // Map results to include user count
+      
       return result.recordset.map(row => ({
         ...new Group(row).toJSON(),
         userCount: row.userCount
