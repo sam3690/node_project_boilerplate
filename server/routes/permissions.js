@@ -15,6 +15,12 @@ router.get('/user/permissions', PermissionController.getUserPermissions);
 // Get menu structure based on user permissions
 router.get('/user/menu', PermissionController.getMenuStructure);
 
+// Get dynamic menu structure (Laravel-like)
+router.get('/user/dynamic-menu', PermissionController.dynamicMenu);
+
+// Check if user can view specific page
+router.get('/user/can-view/:pageUrl', PermissionController.canViewPage);
+
 // Get permissions for a specific group
 router.get('/group/:groupId', PermissionController.getGroupPermissions);
 

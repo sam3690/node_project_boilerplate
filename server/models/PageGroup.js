@@ -176,6 +176,55 @@ class PageGroup {
     }
   }
 
+  // Get user's permissions for all pages (Laravel getUserRights equivalent)
+  static async getUserRights(idGroup, CanView = '', FormName = '') {
+    try {
+      let query = `
+        SELECT pg.idPages,
+               pg.CanAdd,
+               pg.CanEdit,
+               pg.CanDelete,
+               pg.CanView,
+               pg.CanViewAllDetail,
+               pg.idPageGroup,
+               p.pageName,
+               p.langName,
+               p.pageUrl,
+               p.isParent,
+               p.idParent,
+               p.menuIcon,
+               p.menuClass,
+               p.isMenu,
+               p.isTitle,
+               p.titlePara,
+               p.sort_no
+        FROM PageGroup pg
+        INNER JOIN Pages p ON pg.idPages = p.idPages
+        WHERE p.isActive = 1 AND p.isMenu = 1 AND pg.idGroup = @idGroup AND pg.isActive = 1
+        ORDER BY p.sort_no ASC
+      `;
+      
+      const params = { idGroup };
+      
+      // Add CanView filter if specified
+      if (CanView !== '' && CanView !== '0') {
+        query = query.replace('ORDER BY', 'AND pg.CanView = 1 ORDER BY');
+      }
+      
+      // Add FormName filter if specified
+      if (FormName !== '' && FormName !== '0') {
+        query = query.replace('ORDER BY', 'AND p.pageUrl = @FormName ORDER BY');
+        params.FormName = FormName;
+      }
+      
+      const result = await db.query(query, params);
+      return result.recordset;
+    } catch (error) {
+      console.error('Error fetching user rights:', error);
+      throw error;
+    }
+  }
+
   // Get user's permissions for all pages
   static async getUserPermissions(userId) {
     try {

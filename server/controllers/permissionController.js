@@ -255,11 +255,124 @@ class PermissionController {
     }
   }
 
+  // Check if user can view specific page (like Laravel permission check)
+  static async canViewPage(req, res) {
+    try {
+      const { pageUrl } = req.params;
+      let hasPermission = false;
+
+      if (req.user && req.user.idGroup) {
+        const permission = await PageGroup.getUserRights(req.user.idGroup, '', pageUrl);
+        hasPermission = permission.length > 0 && permission[0].CanView === 1;
+      }
+
+      res.json({
+        success: true,
+        data: { 
+          canView: hasPermission,
+          permission: hasPermission ? permission[0] : null
+        }
+      });
+    } catch (error) {
+      console.error('Can view page error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Internal server error during permission check'
+      });
+    }
+  }
+
+  // Middleware function to check page permissions
+  static async checkPagePermission(permissionType = 'CanView') {
+    return async (req, res, next) => {
+      try {
+        if (!req.user || !req.user.idGroup) {
+          return res.status(401).json({
+            success: false,
+            message: 'Authentication required'
+          });
+        }
+
+        // Get the page URL from the request path or body
+        const pageUrl = req.body.pageUrl || req.query.pageUrl || req.originalUrl;
+        
+        const permission = await PageGroup.getUserRights(req.user.idGroup, '', pageUrl);
+        
+        if (permission.length === 0 || permission[0][permissionType] !== 1) {
+          return res.status(403).json({
+            success: false,
+            message: 'Access denied: You do not have permission to access this resource'
+          });
+        }
+
+        // Attach permission data to request for use in controllers
+        req.permission = permission[0];
+        next();
+      } catch (error) {
+        console.error('Permission check middleware error:', error);
+        return res.status(500).json({
+          success: false,
+          message: 'Internal server error during permission check'
+        });
+      }
+    };
+  }
+
+  // Get dynamic menu structure based on user permissions (Laravel equivalent)
+  static async dynamicMenu(req, res) {
+    try {
+      const myresult = {};
+      
+      // Check if user is authenticated and has a group
+      if (req.user && req.user.idGroup) {
+        // Get only pages the user has permission to view (CanView = 1)
+        const pages = await PageGroup.getUserRights(req.user.idGroup, 1, '');
+
+        pages.forEach(page => {
+          if (page.idParent && page.idParent !== '' && page.idParent !== null) {
+            const parentKey = page.idParent.toString().toLowerCase();
+            // Check if parent exists in result, if not, this child will be orphaned
+            if (myresult[parentKey]) {
+              if (!myresult[parentKey].myrow_options) {
+                myresult[parentKey].myrow_options = [];
+              }
+              myresult[parentKey].myrow_options.push(page);
+            }
+            // If parent doesn't exist in myresult, we don't add this child
+            // This ensures only children of accessible parents are shown
+          } else {
+            const mykey = page.idPages.toString().toLowerCase();
+            myresult[mykey] = page;
+          }
+        });
+      }
+
+      res.json({
+        success: true,
+        data: myresult
+      });
+    } catch (error) {
+      console.error('Dynamic menu error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Internal server error during menu retrieval'
+      });
+    }
+  }
+
   // Get menu structure based on user permissions
   static async getMenuStructure(req, res) {
     try {
-      // get all menu pages (already filters deleted and isMenu)
-      const rows = await Page.findAll(); // returns array of Page instances or plain objects
+      // Check if user is authenticated and has a group
+      if (!req.user || !req.user.idGroup) {
+        return res.status(401).json({
+          success: false,
+          message: 'Authentication required'
+        });
+      }
+
+      // Get only pages the user has permission to view
+      const rows = await PageGroup.getUserRights(req.user.idGroup, 1, ''); // Only pages with CanView = 1
 
       // build menu tree
       const buildMenuTree = (pages) => {

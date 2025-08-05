@@ -1,5 +1,6 @@
 const Auth = require('../models/Auth');
 const User = require('../models/User');
+const PageGroup = require('../models/PageGroup');
 
 class AuthController {
   // Register a new user
@@ -71,13 +72,43 @@ class AuthController {
   // Get current user profile
   static async getProfile(req, res) {
     try {
-      // User is already attached to req by auth middleware
-      res.json({
-        success: true,
-        data: {
-          user: req.user.toJSON()
-        }
-      });
+      // Check if the user has permission to view the profile page (Laravel-like)
+      const permission = await PageGroup.getUserRights(req.user.idGroup, '', 'profile.index');
+
+      /*==========Log=============*/
+      const trackarray = {
+        activityName: "User Profile",
+        action: "View Profile -> Function: AuthController/getProfile()",
+        PostData: "",
+        affectedKey: "",
+        idUser: req.user.id,
+        username: req.user.username,
+      };
+      /*==========Log=============*/
+
+      if (permission.length > 0 && permission[0].CanView === 1) {
+        // User is already attached to req by auth middleware
+        trackarray.mainResult = "Success";
+        trackarray.result = "View Success";
+        // Custom_Model::trackLogs($trackarray, "all_logs"); // TODO: Implement logging
+
+        res.json({
+          success: true,
+          data: {
+            user: req.user.toJSON(),
+            permission: permission[0]
+          }
+        });
+      } else {
+        trackarray.mainResult = "Error";
+        trackarray.result = "View Error - Access denied";
+        // Custom_Model::trackLogs($trackarray, "all_logs"); // TODO: Implement logging
+
+        res.status(403).json({
+          success: false,
+          message: 'Access denied: You do not have permission to view this page.'
+        });
+      }
     } catch (error) {
       console.error('Get profile error:', error);
       res.status(500).json({
@@ -108,14 +139,43 @@ class AuthController {
   // Change password
   static async changePassword(req, res) {
     try {
-      const { currentPassword, newPassword } = req.body;
-      
-      await Auth.changePassword(req.user.id, currentPassword, newPassword);
+      // Check if the user has permission to change password (Laravel-like)
+      const permission = await PageGroup.getUserRights(req.user.idGroup, '', 'change-password.index');
 
-      res.json({
-        success: true,
-        message: 'Password changed successfully'
-      });
+      /*==========Log=============*/
+      const trackarray = {
+        activityName: "Change Password",
+        action: "Change Password -> Function: AuthController/changePassword()",
+        PostData: JSON.stringify(req.body),
+        affectedKey: req.user.id,
+        idUser: req.user.id,
+        username: req.user.username,
+      };
+      /*==========Log=============*/
+
+      if (permission.length > 0 && permission[0].CanEdit === 1) {
+        const { currentPassword, newPassword } = req.body;
+        
+        await Auth.changePassword(req.user.id, currentPassword, newPassword);
+
+        trackarray.mainResult = "Success";
+        trackarray.result = "Password Changed Successfully";
+        // Custom_Model::trackLogs($trackarray, "all_logs"); // TODO: Implement logging
+
+        res.json({
+          success: true,
+          message: 'Password changed successfully'
+        });
+      } else {
+        trackarray.mainResult = "Error";
+        trackarray.result = "Change Password Error - Access denied";
+        // Custom_Model::trackLogs($trackarray, "all_logs"); // TODO: Implement logging
+
+        res.status(403).json({
+          success: false,
+          message: 'Access denied: You do not have permission to change password.'
+        });
+      }
     } catch (error) {
       console.error('Change password error:', error);
       res.status(400).json({
