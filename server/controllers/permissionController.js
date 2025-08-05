@@ -59,7 +59,7 @@ class PermissionController {
       console.error('Get permission matrix error:', error);
       res.status(500).json({
         success: false,
-        message: 'Internal server error'
+        message: 'Internal server error during permission matrix retrieval'
       });
     }
   }
@@ -78,7 +78,7 @@ class PermissionController {
       console.error('Get group permissions error:', error);
       res.status(500).json({
         success: false,
-        message: 'Internal server error'
+        message: 'Internal server error during permission retrieval'
       });
     }
   }
@@ -97,7 +97,7 @@ class PermissionController {
       console.error('Get page permissions error:', error);
       res.status(500).json({
         success: false,
-        message: 'Internal server error'
+        message: 'Internal server error during permission retrieval'
       });
     }
   }
@@ -121,7 +121,7 @@ class PermissionController {
       console.error('Set permission error:', error);
       res.status(500).json({
         success: false,
-        message: 'Internal server error'
+        message: 'Internal server error during permission update'
       });
     }
   }
@@ -154,7 +154,7 @@ class PermissionController {
       console.error('Bulk update group permissions error:', error);
       res.status(500).json({
         success: false,
-        message: 'Internal server error'
+        message: 'Internal server error during bulk update'
       });
     }
   }
@@ -176,7 +176,7 @@ class PermissionController {
       console.error('Get user permissions error:', error);
       res.status(500).json({
         success: false,
-        message: 'Internal server error'
+        message: 'Internal server error during permission retrieval'
       });
     }
   }
@@ -197,7 +197,7 @@ class PermissionController {
       console.error('Check user permission error:', error);
       res.status(500).json({
         success: false,
-        message: 'Internal server error'
+        message: 'Internal server error during permission check'
       });
     }
   }
@@ -217,7 +217,7 @@ class PermissionController {
       console.error('Delete permission error:', error);
       res.status(500).json({
         success: false,
-        message: 'Internal server error'
+        message: 'Internal server error during deletion'
       });
     }
   }
@@ -250,7 +250,7 @@ class PermissionController {
       console.error('Initialize super admin permissions error:', error);
       res.status(500).json({
         success: false,
-        message: 'Internal server error'
+        message: 'Internal server error during initialization'
       });
     }
   }
@@ -258,30 +258,79 @@ class PermissionController {
   // Get menu structure based on user permissions
   static async getMenuStructure(req, res) {
     try {
-      const userId = req.user.id;
-      const permissions = await PageGroup.getUserPermissions(userId);
-      
-      // Filter pages user can view and are menu items
-      const menuPages = permissions.filter(p => p.CanView === 1 && p.isMenu === 1);
-      
-      // Organize into parent-child structure
-      const parentPages = menuPages.filter(page => page.isParent === 1);
-      const childPages = menuPages.filter(page => page.isParent === 0);
-      
-      const menuStructure = parentPages.map(parent => ({
-        ...parent,
-        children: childPages.filter(child => child.idParent === parent.idPages.toString())
-      }));
-      
+      // get all menu pages (already filters deleted and isMenu)
+      const rows = await Page.findAll(); // returns array of Page instances or plain objects
+
+      // build menu tree
+      const buildMenuTree = (pages) => {
+        const byId = new Map();
+
+        // normalize and create shallow clone with children array
+        pages.forEach(p => {
+          const id = Number(p.idPages);
+          byId.set(id, { ...p, idPages: id, idParent: p.idParent == null || p.idParent === '' ? null : Number(p.idParent), children: [] });
+        });
+
+        const parents = [];
+        const standalone = [];
+
+        // Attach children to their parentss
+        byId.forEach(page => {
+          const parentId = page.idParent;
+          if (parentId && byId.has(parentId)) {
+            byId.get(parentId).children.push(page);
+          } else {
+            // not attached as a child
+            const isParentFlag = page.isParent === true || page.isParent === 1 || page.isParent === '1';
+            if (isParentFlag) {
+              parents.push(byId.get(page.idPages));
+            } else {
+              standalone.push(byId.get(page.idPages));
+            }
+          }
+        });
+
+        // Optional: sort children by sort_no (if present)
+        const sortBySortNo = (a, b) => {
+          const sa = a.sort_no == null ? 0 : Number(a.sort_no);
+          const sb = b.sort_no == null ? 0 : Number(b.sort_no);
+          return sa - sb;
+        };
+
+        parents.forEach(p => {
+          if (Array.isArray(p.children) && p.children.length > 0) {
+            p.children.sort(sortBySortNo);
+          }
+        });
+
+        // Optional: sort parents and standalone as well (they came from DB ordered by sort_no already)
+        parents.sort(sortBySortNo);
+        standalone.sort(sortBySortNo);
+
+        // Compose final menu:
+        // Option A: parents first, then standalone
+        const finalMenu = [...parents, ...standalone];
+
+        // Option B (if you want everything at top-level in original DB order):
+        // const finalMenu = pages
+        //   .filter(p => !p.idParent) // top-level rows
+        //   .map(p => byId.get(Number(p.idPages)));
+
+        return finalMenu;
+      };
+
+      const menuStructure = buildMenuTree(rows);
+
       res.json({
         success: true,
         data: menuStructure
       });
-    } catch (error) {
+    } 
+    catch (error) {
       console.error('Get menu structure error:', error);
       res.status(500).json({
         success: false,
-        message: 'Internal server error'
+        message: 'Internal server error during menu structure retrieval'
       });
     }
   }

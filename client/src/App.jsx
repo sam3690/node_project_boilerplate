@@ -61,7 +61,7 @@ function App() {
               
               {/* Data Management Routes */}
               <Route
-                path="/dashboard/users"
+                path="/dashboard_users"
                 element={
                   <ProtectedRoute>
                     <Layout>

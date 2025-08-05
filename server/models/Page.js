@@ -31,7 +31,7 @@ class Page {
     try {
       const query = `
         SELECT * FROM Pages 
-        WHERE deletedDateTime IS NULL 
+        WHERE deletedDateTime IS NULL AND isMenu = 1
         ORDER BY sort_no, idPages
       `;
       

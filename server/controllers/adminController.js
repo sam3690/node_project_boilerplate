@@ -41,7 +41,7 @@ class AdminController {
       console.error('Get all users error:', error);
       res.status(500).json({
         success: false,
-        message: 'Internal server error'
+        message: 'Internal server error during users retrieval'
       });
     }
   }
@@ -256,7 +256,7 @@ class AdminController {
       console.error('Get all groups error:', error);
       res.status(500).json({
         success: false,
-        message: 'Internal server error'
+        message: 'Internal server error during groups retrieval'
       });
     }
   }
@@ -382,7 +382,7 @@ class AdminController {
       console.error('Get all pages error:', error);
       res.status(500).json({
         success: false,
-        message: 'Internal server error'
+        message: 'Internal server error during pages retrieval'
       });
     }
   }

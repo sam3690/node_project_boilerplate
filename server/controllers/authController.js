@@ -82,7 +82,7 @@ class AuthController {
       console.error('Get profile error:', error);
       res.status(500).json({
         success: false,
-        message: 'Internal server error'
+        message: 'Internal server error during profile retrieval'
       });
     }
   }

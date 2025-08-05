@@ -2,12 +2,25 @@ import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
+import { ChevronDown } from 'react-feather';
 
 const Sidebar = () => {
   const [menuItems, setMenuItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
   const location = useLocation();
+  const [openIds, setOpenIds] = useState(new Set());
+
+  const toggleOpen = (id) => {
+    setOpenIds((prev) => {
+      const copy = new Set(prev);
+      if (copy.has(id)) copy.delete(id);
+      else copy.add(id);
+      return copy;
+    });
+  };
+
+  const isOpen = (id) => openIds.has(id);
 
   useEffect(() => {
     const fetchMenuItems = async () => {
@@ -21,15 +34,17 @@ const Sidebar = () => {
           { idPages: 5, pageName: 'Profile', pageUrl: '/profile', menuIcon: 'fas fa-user', sort_no: 5 }
         ]);
         
-        /* 
+        
         // Uncomment this when the permission system is fully configured
         const response = await api.get('/permissions/user/menu');
         if (response.data.success) {
           // Sort menu items by sort_no
           const sortedItems = response.data.data.sort((a, b) => a.sort_no - b.sort_no);
+          // console.log('sortedItems:', sortedItems);
+          
           setMenuItems(sortedItems);
         }
-        */
+        
       } catch (error) {
         console.error('Error fetching menu items:', error);
         // Keep fallback menu items on error
@@ -75,25 +90,84 @@ const Sidebar = () => {
       </div>
 
       {/* Navigation Menu */}
-      <nav className="flex-1 p-4">
-        <ul className="space-y-2">
-          {menuItems.map((item) => (
-            <li key={item.idPages}>
+       <nav className="flex-1 p-4">
+      <ul className="space-y-2">
+        {menuItems.map((item) => {
+          // children may be absent or empty
+          const hasChildren = item.isParent === true || item.isParent === "1" ? Array.isArray(item.children) && item.children.length > 0 : false;
+
+          // highlight style for parent when any child active OR parent route active
+          const parentActive =
+            isActiveLink(item.pageUrl) ||
+            (hasChildren && item.children.some((c) => isActiveLink(c.pageUrl)));
+
+          return (
+            <li key={item.idPages} className="w-full">
+              {/* Parent (or normal) link */}
               <Link
-                to={item.pageUrl}
-                className={`flex items-center px-3 py-2 rounded-lg transition-colors duration-200 ${
-                  isActiveLink(item.pageUrl)
-                    ? 'bg-blue-600 text-white'
-                    : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                to={`/${item.pageUrl}`}
+                onClick={(e) => {
+                  // if item is parent, clicking toggles expand/collapse and prevents navigation
+                  if (hasChildren) {
+                    e.preventDefault();
+                    toggleOpen(item.idPages);
+                  }
+                }}
+                className={`flex items-center justify-between px-3 py-2 rounded-lg transition-colors duration-200 w-full ${
+                  parentActive
+                    ? "bg-blue-600 text-white"
+                    : "text-gray-300 hover:bg-gray-700 hover:text-white"
                 }`}
+                aria-expanded={hasChildren ? isOpen(item.idPages) : undefined}
               >
-                <i className={`${item.menuIcon} mr-3`}></i>
-                <span>{item.pageName}</span>
+                <div className="flex items-center">
+                  {/* Icon from API (menuIcon) */}
+                  <i className={`${item.menuIcon} mr-3`}></i>
+                  <span>{item.pageName}</span>
+                </div>
+
+                {/* chevron only for parents */}
+                {hasChildren ? (
+                  <span
+                    className={`ml-2 transform transition-transform duration-200 ${
+                      isOpen(item.idPages) ? "rotate-180" : "rotate-0"
+                    }`}
+                  >
+                    {/* small chevron; replace with any icon you prefer */}
+                    <ChevronDown size={16} />
+                  </span>
+                ) : null}
               </Link>
+
+              {/* Children list (collapsible) */}
+              {hasChildren && (
+                <ul
+                  className={`mt-1 ml-4 overflow-hidden transition-[max-height] duration-200 ${
+                    isOpen(item.idPages) ? "max-h-96" : "max-h-0"
+                  }`}
+                >
+                  {item.children.map((child) => (
+                    <li key={child.idPages} className="mb-1">
+                      <Link
+                        to={`/${child.pageUrl}`}
+                        className={`flex items-center px-3 py-2 rounded-lg transition-colors duration-150 ${
+                          isActiveLink(child.pageUrl)
+                            ? "bg-blue-500 text-white"
+                            : "text-gray-300 hover:bg-gray-700 hover:text-white"
+                        }`}
+                      >
+                        {/* optional child icon or indent */}
+                        <span className="ml-1">{child.pageName}</span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </li>
-          ))}
-        </ul>
-      </nav>
+          );
+        })}
+      </ul>
+    </nav>
 
       {/* Sidebar Footer */}
       <div className="p-4 border-t border-gray-700">

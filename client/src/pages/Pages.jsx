@@ -66,7 +66,7 @@ const Pages = () => {
           <thead className="bg-gray-50">
             <tr>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Sort No
+                ID
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Page Name
@@ -87,6 +87,9 @@ const Pages = () => {
                 Status
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Sort No
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Actions
               </th>
             </tr>
@@ -95,7 +98,7 @@ const Pages = () => {
             {pages.map((page) => (
               <tr key={page.idPages} className="hover:bg-gray-50">
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                  {page.sort_no}
+                  {page.idPages}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                   <div className="flex items-center">
@@ -107,7 +110,7 @@ const Pages = () => {
                   <code className="bg-gray-100 px-2 py-1 rounded">{page.pageUrl}</code>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  <i className={`${page.menuIcon} text-lg`}></i>
+                  <span className={` text-md`}>{page.menuIcon}</span>
                   {/* {console.log('Page Icon:', page.menuIcon)} */}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
@@ -129,6 +132,12 @@ const Pages = () => {
                     page.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
                   }`}>
                     {page.isActive ? 'Active' : 'Inactive'}
+                  </span>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                    page.sort_no ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                    {page.sort_no}
                   </span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">

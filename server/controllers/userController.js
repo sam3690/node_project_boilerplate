@@ -15,7 +15,7 @@ class UserController {
       console.error('Get profile error:', error);
       res.status(500).json({
         success: false,
-        message: 'Internal server error'
+        message: 'Internal server error during profile retrieval'
       });
     }
   }
@@ -149,7 +149,7 @@ class UserController {
       console.error('Get all users error:', error);
       res.status(500).json({
         success: false,
-        message: 'Internal server error'
+        message: 'Internal server error during users retrieval'
       });
     }
   }
