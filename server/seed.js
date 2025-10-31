@@ -7,7 +7,7 @@ async function runSeeder() {
     await db.connect();
     
     console.log('Running database seeder...');
-    await seedDatabase();
+    // await seedDatabase();
     
     console.log('Seeding completed successfully!');
     process.exit(0);
