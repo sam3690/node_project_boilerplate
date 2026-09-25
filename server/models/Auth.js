@@ -66,11 +66,11 @@ class Auth {
       
       // Check password attempts and lockout
       if (userData.attempt >= 5) {
-        throw new Error('Account locked due to too many failed attempts');
+        throw new Error('Account locked due to too many failed attempts, contact Admin!');
       }
 
       const isValidPassword = await bcrypt.compare(password, userData.password);
-
+     
       if (!isValidPassword) {
         // Increment failed attempts
         await this.incrementFailedAttempts(userData.id);

@@ -23,7 +23,7 @@
   },
   "devDependencies": {
     "jest": "^29.6.1",
-    "nodemon": "^3.0.1"
+    "nodemon": "^3.1.14"
   },
   "keywords": [
     "nodejs",

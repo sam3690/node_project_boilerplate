@@ -27,11 +27,11 @@ const Sidebar = () => {
       try {
         // For now, use fallback menu items since the permission system might not be fully set up
         setMenuItems([
-          { idPages: 1, pageName: 'Dashboard', pageUrl: '/dashboard', menuIcon: 'fas fa-tachometer-alt', sort_no: 1 },
-          { idPages: 2, pageName: 'Dashboard Users', pageUrl: '/dashboard/users', menuIcon: 'fas fa-users', sort_no: 2 },
-          { idPages: 3, pageName: 'Groups', pageUrl: '/groups', menuIcon: 'fas fa-layer-group', sort_no: 3 },
-          { idPages: 4, pageName: 'Pages', pageUrl: '/pages', menuIcon: 'fas fa-file-alt', sort_no: 4 },
-          { idPages: 5, pageName: 'Profile', pageUrl: '/profile', menuIcon: 'fas fa-user', sort_no: 5 }
+          // { idPages: 1, pageName: 'Dashboard', pageUrl: '/dashboard', menuIcon: 'fas fa-tachometer-alt', sort_no: 1 },
+          // { idPages: 2, pageName: 'Dashboard Users', pageUrl: '/dashboard/users', menuIcon: 'fas fa-users', sort_no: 2 },
+          // { idPages: 3, pageName: 'Groups', pageUrl: '/groups', menuIcon: 'fas fa-layer-group', sort_no: 3 },
+          // { idPages: 4, pageName: 'Pages', pageUrl: '/pages', menuIcon: 'fas fa-file-alt', sort_no: 4 },
+          // { idPages: 5, pageName: 'Profile', pageUrl: '/profile', menuIcon: 'fas fa-user', sort_no: 5 }
         ]);
         
         
@@ -78,7 +78,7 @@ const Sidebar = () => {
   }
 
   return (
-    <div className="bg-gray-800 text-white w-64 min-h-screen flex flex-col">
+    <div className="bg-gray-800 text-white w-64 h-screen flex flex-col overflow-hidden">
       {/* Sidebar Header */}
       <div className="p-4 border-b border-gray-700">
         <h2 className="text-xl font-bold">Admin Panel</h2>
@@ -90,7 +90,7 @@ const Sidebar = () => {
       </div>
 
       {/* Navigation Menu */}
-       <nav className="flex-1 p-4">
+       <nav className="flex-1 min-h-0 overflow-y-auto p-4">
       <ul className="space-y-2">
         {menuItems.map((item) => {
           // children may be absent or empty
@@ -170,7 +170,7 @@ const Sidebar = () => {
     </nav>
 
       {/* Sidebar Footer */}
-      <div className="p-4 border-t border-gray-700">
+      <div className="p-4 border-t border-gray-700 flex-shrink-0">
         <div className="text-xs text-gray-400">
           <p>Role: {user?.designation || 'User'}</p>
           <p>Group: {user?.groupName || 'Default'}</p>

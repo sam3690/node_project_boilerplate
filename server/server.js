@@ -33,6 +33,17 @@ app.use(session({
   }
 }));
 
+app.use((req, res, next) => {
+    console.log('--- SESSION DEBUG ---');
+    console.log('Session ID:', req.sessionID);
+    console.log('Session:', req.session);
+    console.log('User ID:', req.session.userId);
+    console.log('Cookie:', req.headers.cookie);
+    console.log('---------------------');
+
+    next();
+});
+
 // CORS configuration
 const corsOptions = {
   origin: process.env.CLIENT_URL || 'http://localhost:3000',
